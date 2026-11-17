@@ -248,7 +248,7 @@ class ResultFault(Fault):
         # A fresh generator per leaf, so the text and structured copies change the same way.
         new = self.leaf(value, random.Random(seed))
         if new != value:
-            changes.append((_clip(value), _clip(new)))
+            changes.append(_diff(value, new))
         return new
 
     def leaf(self, value: Any, rng: random.Random) -> Any:
@@ -368,6 +368,21 @@ def _format_like(value: float, token: str) -> str:
     """Format ``value`` with the same decimals and thousands separators as ``token``."""
     decimals = len(token.split(".", 1)[1]) if "." in token else 0
     return f"{value:,.{decimals}f}" if "," in token else f"{value:.{decimals}f}"
+
+
+def _diff(old: Any, new: Any, context: int = 30) -> tuple[str, str]:
+    """The changed part of a value, with a little context, for the log."""
+    if not (isinstance(old, str) and isinstance(new, str)):
+        return _clip(old), _clip(new)
+    p = 0
+    while p < min(len(old), len(new)) and old[p] == new[p]:
+        p += 1
+    s = 0
+    while s < min(len(old), len(new)) - p and old[-1 - s] == new[-1 - s]:
+        s += 1
+    head = ("..." if p > context else "") + old[max(0, p - context) : p]
+    tail = old[len(old) - s : len(old) - s + context] + ("..." if s > context else "")
+    return _clip(head + old[p : len(old) - s] + tail), _clip(head + new[p : len(new) - s] + tail)
 
 
 def _clip(value: Any, limit: int = 160) -> str:
