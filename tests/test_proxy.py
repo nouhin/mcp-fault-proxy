@@ -81,3 +81,31 @@ async def test_same_seed_same_faults(tmp_path):
 
     first, second = await run(), await run()
     assert first == second and 0 < sum(first) < 20
+
+
+async def test_wrong_but_plausible_results(tmp_path):
+    rules = [
+        {"tool": "page", "fault": "alter_number", "field": "text", "nth": 1},
+        {"tool": "page", "fault": "reformat_numbers", "field": "text", "nth": 2},
+        {"tool": "page", "fault": "rewrite_args", "argument": "url", "pattern": "2025", "replacement": "2024", "nth": 3},
+        {"tool": "add", "fault": "alter_number", "nth": 1},
+        {"tool": "search", "fault": "empty_result", "nth": 1},
+        {"tool": "search", "fault": "inject_item", "item": {"title": "Fan wiki", "url": "https://wiki"}, "nth": 2},
+    ]
+    async with connect(tmp_path, rules) as s:
+        pages = [json.loads((await s.call_tool("page", {"url": "fy2025"})).content[0].text) for _ in range(3)]
+        added = await s.call_tool("add", {"a": 100.0, "b": 0.5})
+        empty = await s.call_tool("search", {"query": "ACME"})
+        ranked = await s.call_tool("search", {"query": "ACME"})
+
+    original = "Revenue was EUR 1,234.5 million, up from 1,100.0 million."
+    altered, european, older = pages
+    assert altered["status"] == 200 and altered["url"] == "fy2025" and altered["text"] != original
+    assert altered["text"].startswith("Revenue was EUR ") and altered["text"].endswith(" million.")
+    assert european["text"] == "Revenue was EUR 1.234,5 million, up from 1.100,0 million."
+    assert older["url"] == "fy2024"
+    assert not added.is_error and added.structured_content["result"] != 100.5
+    assert float(added.content[0].text) == added.structured_content["result"]
+    assert not empty.is_error and empty.content == [] and empty.structured_content == {"result": []}
+    assert [h["title"] for h in ranked.structured_content["result"]][0] == "Fan wiki"
+    assert all(e["details"].get("changed") for e in fault_log(tmp_path))
