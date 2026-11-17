@@ -129,6 +129,21 @@ shows what each fault does to an unguarded pipeline.
 | 09 S4 last year's report · 10 S5 one figure altered · 11 S6 unofficial site first · 12 S7 wrong calculation · 13 S8 European number format | Silent wrong |
 | 14 seeded random mix, run twice | Safe gap, identical both times |
 
+### With a real LLM
+
+`demo/llm_agent.py` replaces the script with an LLM served by any OpenAI-compatible endpoint
+(`LLM_URL`, default LM Studio on `localhost:1234`; `LLM_MODEL`; `RUNS`; `PARALLEL`). The model gets
+the same task and the MCP tools as functions, calls them through the same proxies, and its final
+JSON summary is graded with the same answer key. `demo/llm-run.log` holds 3 runs per scenario with
+Qwen3.5 9B (Q4_K_M) in LM Studio. The model recovered from every loud fault, but reported a
+plausible wrong value as fact when one reached it (S5 2/3, S7 3/3). `demo/lmstudio_usage.py`
+extracts the token counts from LM Studio's server log; `demo/llm-usage.json` holds them for that
+batch (8.6k input and 2.8k output tokens per run).
+
+```sh
+uv run python demo/llm_agent.py            # all scenarios; or give name prefixes, e.g. 10 12
+```
+
 To run one scenario by hand: `uv run python demo/report_client.py demo/scenarios/10-S5-one-figure-altered.yaml`.
 Fault logs go to `logs/`.
 
@@ -150,5 +165,7 @@ Fault logs go to `logs/`.
   server's.
 - **Latency applies on the way to the server.** No fault slows the response on its way back,
   which matters only for streaming or progress notifications.
-- **The demo client is a script, not an agent.** It shows the faults' effect on an unguarded
-  pipeline, not how an LLM-based system such as report agent would recover.
+- **The scripted client is not an agent, and the LLM agent is one agent, not three.** Neither
+  reproduces a report agent's message passing between agents. With an LLM, the call order changes
+  between runs, so the same seed can hit different calls: the fault schedule is reproducible, the
+  outcome is not.

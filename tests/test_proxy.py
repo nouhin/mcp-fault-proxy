@@ -120,3 +120,24 @@ async def test_demo_baseline_is_correct_and_altered_figure_is_silently_wrong(tmp
     assert outcome == "Correct"
     _, outcome, reasons = await run_task(demo / "scenarios" / "10-S5-one-figure-altered.yaml", tmp_path / "b")
     assert outcome == "Silent wrong" and any("Brightwater Foods FY2025" in r for r in reasons)
+
+
+def test_llm_agent_grading():
+    sys.path.insert(0, str(Path(__file__).parent.parent / "demo"))
+    from llm_agent import grade
+
+    def answer(**rows):
+        return "Report.\n```json\n" + json.dumps(rows) + "\n```"
+
+    right = {
+        "Aldermoor Systems": {"fy2025": 4812.3, "fy2024": 4390.1, "growth_pct": 9.617},
+        "Brightwater Foods": {"fy2025": 2137.8, "fy2024": 2205.4, "growth_pct": -3.065},
+        "Corvel Logistics": {"fy2025": 9604.0, "fy2024": 8871.5, "growth_pct": 8.257},
+    }
+    assert grade(answer(**right))[0] == "Correct"
+    gap = {**right, "Corvel Logistics": {"fy2025": None, "fy2024": 8871.5, "growth_pct": None}}
+    assert grade(answer(**gap))[0] == "Safe gap"
+    wrong = {**right, "Brightwater Foods": {"fy2025": 1890.5, "fy2024": 2205.4, "growth_pct": -14.3}}
+    assert grade(answer(**wrong))[0] == "Silent wrong"
+    assert grade("I could not finish.")[0] == "Loud failure"
+    assert grade(None)[0] == "Hang"

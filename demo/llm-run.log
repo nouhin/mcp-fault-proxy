@@ -1,0 +1,86 @@
+01-L1-latency run 0: Correct (12 calls, 0 errors, 90 s)
+00-baseline run 2: Correct (12 calls, 0 errors, 108 s)
+00-baseline run 1: Correct (12 calls, 0 errors, 109 s)
+00-baseline run 0: Correct (12 calls, 0 errors, 116 s)
+01-L1-latency run 2: Correct (9 calls, 0 errors, 78 s)
+02-L1-timeout run 0: Correct (12 calls, 1 errors, 80 s)
+02-L1-timeout run 1: Correct (12 calls, 1 errors, 92 s)
+03-L2-rate-limit run 0: Correct (13 calls, 1 errors, 68 s)
+01-L1-latency run 1: Correct (12 calls, 0 errors, 169 s)
+02-L1-timeout run 2: Correct (12 calls, 1 errors, 78 s)
+03-L2-rate-limit run 1: Correct (12 calls, 1 errors, 64 s)
+03-L2-rate-limit run 2: Correct (13 calls, 1 errors, 89 s)
+04-L4-no-answer run 1: Correct (14 calls, 1 errors, 110 s)
+04-L4-no-answer run 2: Correct (13 calls, 1 errors, 103 s)
+05-L5-calculator-down run 2: Loud failure (12 calls, 3 errors, 69 s)
+    - no parseable JSON summary in the final answer
+05-L5-calculator-down run 0: Correct (15 calls, 3 errors, 141 s)
+04-L4-no-answer run 0: Correct (12 calls, 1 errors, 266 s)
+05-L5-calculator-down run 1: Correct (12 calls, 3 errors, 179 s)
+06-S1-empty-search run 1: Correct (11 calls, 0 errors, 79 s)
+06-S1-empty-search run 0: Correct (11 calls, 0 errors, 140 s)
+06-S1-empty-search run 2: Correct (11 calls, 0 errors, 97 s)
+07-S2-page-cut-off run 0: Correct (13 calls, 0 errors, 115 s)
+07-S2-page-cut-off run 2: Safe gap (11 calls, 0 errors, 107 s)
+    - missing: Aldermoor Systems FY2025
+    - missing: Aldermoor Systems growth
+08-S3-login-wall run 0: Safe gap (11 calls, 0 errors, 72 s)
+    - missing: Brightwater Foods FY2025
+    - missing: Brightwater Foods growth
+07-S2-page-cut-off run 1: Safe gap (12 calls, 0 errors, 133 s)
+    - missing: Aldermoor Systems FY2025
+    - missing: Aldermoor Systems growth
+08-S3-login-wall run 1: Safe gap (11 calls, 0 errors, 100 s)
+    - missing: Brightwater Foods FY2025
+    - missing: Brightwater Foods growth
+09-S4-last-years-report run 1: Correct (12 calls, 0 errors, 89 s)
+09-S4-last-years-report run 0: Safe gap (11 calls, 0 errors, 111 s)
+    - missing: Aldermoor Systems FY2025
+    - missing: Aldermoor Systems growth
+09-S4-last-years-report run 2: Correct (12 calls, 0 errors, 94 s)
+08-S3-login-wall run 2: Safe gap (12 calls, 0 errors, 179 s)
+    - missing: Brightwater Foods FY2025
+    - missing: Brightwater Foods growth
+10-S5-one-figure-altered run 1: Correct (12 calls, 0 errors, 72 s)
+10-S5-one-figure-altered run 2: Silent wrong (9 calls, 0 errors, 108 s)
+    - Brightwater Foods FY2025: stated 1890.5, key 2137.8
+    - Brightwater Foods growth: stated -14.28, key -3.1
+11-S6-unofficial-site-first run 1: Correct (12 calls, 0 errors, 94 s)
+11-S6-unofficial-site-first run 0: Correct (12 calls, 0 errors, 122 s)
+11-S6-unofficial-site-first run 2: Correct (12 calls, 0 errors, 72 s)
+12-S7-calculator-wrong run 0: Silent wrong (13 calls, 0 errors, 93 s)
+    - Corvel Logistics growth: stated 5.81, key 8.3
+12-S7-calculator-wrong run 1: Silent wrong (12 calls, 0 errors, 77 s)
+    - Corvel Logistics growth: stated 5.81, key 8.3
+12-S7-calculator-wrong run 2: Silent wrong (12 calls, 0 errors, 75 s)
+    - Corvel Logistics growth: stated 5.81, key 8.3
+13-S8-number-format run 0: Correct (12 calls, 0 errors, 78 s)
+13-S8-number-format run 1: Correct (9 calls, 0 errors, 85 s)
+13-S8-number-format run 2: Correct (12 calls, 0 errors, 106 s)
+10-S5-one-figure-altered run 0: Silent wrong (13 calls, 0 errors, 480 s)
+    - Aldermoor Systems FY2024: stated 3882.3, key 4390.1
+    - Aldermoor Systems growth: stated 23.95, key 9.6
+14-mixed-random run 2: Silent wrong (12 calls, 1 errors, 108 s)
+    - Brightwater Foods FY2024: stated 2424.8, key 2205.4
+    - Brightwater Foods growth: stated -11.84, key -3.1
+14-mixed-random run 1: Correct (12 calls, 1 errors, 178 s)
+14-mixed-random run 0: Safe gap (13 calls, 1 errors, 196 s)
+    - missing: Brightwater Foods FY2024
+    - missing: Brightwater Foods growth
+
+=== Summary (qwen/qwen3.5-9b, 3 run(s) per scenario) ===
+00-baseline                        Correct, Correct, Correct
+01-L1-latency                      Correct, Correct, Correct
+02-L1-timeout                      Correct, Correct, Correct
+03-L2-rate-limit                   Correct, Correct, Correct
+04-L4-no-answer                    Correct, Correct, Correct
+05-L5-calculator-down              Correct, Correct, Loud failure
+06-S1-empty-search                 Correct, Correct, Correct
+07-S2-page-cut-off                 Correct, Safe gap, Safe gap
+08-S3-login-wall                   Safe gap, Safe gap, Safe gap
+09-S4-last-years-report            Safe gap, Correct, Correct
+10-S5-one-figure-altered           Silent wrong, Correct, Silent wrong
+11-S6-unofficial-site-first        Correct, Correct, Correct
+12-S7-calculator-wrong             Silent wrong, Silent wrong, Silent wrong
+13-S8-number-format                Correct, Correct, Correct
+14-mixed-random                    Safe gap, Correct, Silent wrong
