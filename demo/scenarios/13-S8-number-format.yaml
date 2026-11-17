@@ -1,0 +1,9 @@
+# S8: figures in a fetched page are written in the European style (1.234,5)
+seed: 1
+rules:
+  - id: european-format
+    tag: S8
+    tool: fetch_page
+    fault: reformat_numbers
+    field: text
+    nth: 1

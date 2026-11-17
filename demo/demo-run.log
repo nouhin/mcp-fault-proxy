@@ -1,0 +1,227 @@
+Demo run of mcp-fault-proxy: the scripted report agent client against toy web and math servers.
+Each scenario puts both servers behind the proxy with the scenario's configuration.
+
+=== 00-baseline ===
+Baseline: proxy in place, no faults
+Faults injected: none
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Correct  (0.8 s)
+
+=== 01-L1-latency ===
+L1 (brief): every web_search is slowed by 300-500 ms
+Faults injected:
+  [L1] latency on web_search call #1 (query='Aldermoor Systems annual report 2025'): +399.5 ms
+  [L1] latency on web_search call #2 (query='Brightwater Foods annual report 2025'): +310.2 ms
+  [L1] latency on web_search call #3 (query='Corvel Logistics annual report 2025'): +376.3 ms
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Correct  (1.8 s)
+
+=== 02-L1-timeout ===
+L1 (permanent): the second fetch_page takes longer than the client's 2 s timeout
+Faults injected:
+  [L1] latency on fetch_page call #2 (url='https://brightwater.example/investors/annual-report-2025'): +5000.0 ms
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+Outcome: Loud failure  (4.7 s)
+  - run stopped: fetch_page: Request 'tools/call' timed out
+
+=== 03-L2-rate-limit ===
+L2: the third web_search is refused with a rate-limit error
+Faults injected:
+  [L2] error on web_search call #3 (query='Corvel Logistics annual report 2025'): jsonrpc error 'Rate limit exceeded, retry after 30 seconds'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+Outcome: Loud failure  (0.7 s)
+  - run stopped: web_search: Rate limit exceeded, retry after 30 seconds
+
+=== 04-L4-no-answer ===
+L4: a fetch_page is lost (as if the server restarted mid-call) and never answered
+Faults injected:
+  [L4] drop on fetch_page call #1 (url='https://aldermoor.example/investors/annual-report-2025'): dropped, no answer will be sent
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+Outcome: Loud failure  (2.7 s)
+  - run stopped: fetch_page: Request 'tools/call' timed out
+
+=== 05-L5-calculator-down ===
+L5: the calculator is down for the whole run
+Faults injected:
+  [L5] error on calculator call #1 (expression='(4812.3 - 4390.1) / 4390.1 * 100'): tool error 'math server unavailable'
+  [L5] error on calculator call #2 (expression='(2137.8 - 2205.4) / 2205.4 * 100'): tool error 'math server unavailable'
+  [L5] error on calculator call #3 (expression='(9604.0 - 8871.5) / 8871.5 * 100'): tool error 'math server unavailable'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | n/a | https://aldermoor.example/investors/annual-report-2025; growth not computed: math server unavailable |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | n/a | https://brightwater.example/investors/annual-report-2025; growth not computed: math server unavailable |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | n/a | https://corvel.example/investors/annual-report-2025; growth not computed: math server unavailable |
+Outcome: Safe gap  (0.8 s)
+  - reported as missing: Aldermoor Systems growth
+  - reported as missing: Brightwater Foods growth
+  - reported as missing: Corvel Logistics growth
+
+=== 06-S1-empty-search ===
+S1: the second web_search succeeds but returns no hits
+Faults injected:
+  [S1] empty_result on web_search call #2 (query='Brightwater Foods annual report 2025'): '3 content blocks' -> '0 content blocks'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | n/a | n/a | n/a | no search results |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Safe gap  (0.8 s)
+  - reported as missing: Brightwater Foods FY2025
+  - reported as missing: Brightwater Foods FY2024
+  - reported as missing: Brightwater Foods growth
+
+=== 07-S2-page-cut-off ===
+S2: the first fetched page is cut off before its revenue section
+Faults injected:
+  [S2] truncate on fetch_page call #1 (url='https://aldermoor.example/investors/annual-report-2025'): '...ur strategy rests on three pillars: disciplined growth, operational excellence and responsible business. Markets remained competitive and input costs were...' -> '...ur strategy rests on three pil'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | n/a | n/a | n/a | https://aldermoor.example/investors/annual-report-2025; revenue not found in the fetched page |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Safe gap  (0.7 s)
+  - reported as missing: Aldermoor Systems FY2025
+  - reported as missing: Aldermoor Systems FY2024
+  - reported as missing: Aldermoor Systems growth
+
+=== 08-S3-login-wall ===
+S3: the third fetched page is a login wall, served with status 200
+Faults injected:
+  [S3] replace_text on fetch_page call #3 (url='https://corvel.example/investors/annual-report-2025'): 'Corvel Logistics - Annual Report 2025\n\nLetter from the Chair. This year the Group continued to invest in its people, its products and its customers. We compl...' -> 'Sign in to continue. Investor documents are available to registered users only.'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | n/a | n/a | n/a | https://corvel.example/investors/annual-report-2025; revenue not found in the fetched page |
+Outcome: Safe gap  (0.7 s)
+  - reported as missing: Corvel Logistics FY2025
+  - reported as missing: Corvel Logistics FY2024
+  - reported as missing: Corvel Logistics growth
+
+=== 09-S4-last-years-report ===
+S4: the request for the FY2025 report gets last year's report
+Faults injected:
+  [S4] rewrite_args on fetch_page call #2 (url='https://brightwater.example/investors/annual-report-2025'): url 'https://brightwater.example/investors/annual-report-2025' -> 'https://brightwater.example/investors/annual-report-2024'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,205.4 | 2,050.2 | +7.6% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Silent wrong  (0.7 s)
+  - Brightwater Foods FY2025: stated 2,205.4, key 2,137.8
+  - Brightwater Foods FY2024: stated 2,050.2, key 2,205.4
+  - Brightwater Foods growth: stated 7.6, key -3.1
+
+=== 10-S5-one-figure-altered ===
+S5: one revenue figure in a fetched page is altered by 5-15 %
+Faults injected:
+  [S5] alter_number on fetch_page call #2 (url='https://brightwater.example/investors/annual-report-2025'): '...al year 2025 (FY2025) was EUR 2,137.8 million, compared with EUR 2,...' -> '...al year 2025 (FY2025) was EUR 1,890.5 million, compared with EUR 2,...'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 1,890.5 | 2,205.4 | -14.3% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Silent wrong  (0.7 s)
+  - Brightwater Foods FY2025: stated 1,890.5, key 2,137.8
+  - Brightwater Foods growth: stated -14.3, key -3.1
+
+=== 11-S6-unofficial-site-first ===
+S6: an unofficial aggregator site is ranked above the official report
+Faults injected:
+  [S6] inject_item on web_search call #1 (query='Aldermoor Systems annual report 2025'): '' -> '{"title": "Aldermoor Systems revenue 2025 - RevenueFacts", "url": "https://revenuefacts.example/aldermoor-systems"}'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,650.0 | 4,390.1 | +5.9% | https://revenuefacts.example/aldermoor-systems |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Silent wrong  (0.8 s)
+  - Aldermoor Systems FY2025: stated 4,650.0, key 4,812.3
+  - Aldermoor Systems growth: stated 5.9, key 9.6
+
+=== 12-S7-calculator-wrong ===
+S7: the calculator returns a plausible but wrong growth figure
+Faults injected:
+  [S7] alter_number on calculator call #3 (expression='(9604.0 - 8871.5) / 8871.5 * 100'): '8.25677732063349' -> '5.814047'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +5.8% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Silent wrong  (0.8 s)
+  - Corvel Logistics growth: stated 5.8, key 8.3
+
+=== 13-S8-number-format ===
+S8: figures in a fetched page are written in the European style (1.234,5)
+Faults injected:
+  [S8] reformat_numbers on fetch_page call #1 (url='https://aldermoor.example/investors/annual-report-2025'): '...l year 2025 (FY2025) was EUR 4,812.3 million, compared with EUR 4,390.1 million in FY2024. Operating...' -> '...l year 2025 (FY2025) was EUR 4.812,3 million, compared with EUR 4.390,1 million in FY2024. Operating...'
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4.8 | 4.4 | +9.6% | https://aldermoor.example/investors/annual-report-2025 |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Silent wrong  (0.8 s)
+  - Aldermoor Systems FY2025: stated 4.8, key 4,812.3
+  - Aldermoor Systems FY2024: stated 4.4, key 4,390.1
+
+=== 14-mixed-random ===
+Mixed, rate-based faults on every tool; the seed fixes which calls are hit
+Faults injected:
+  [L1] latency on fetch_page call #1 (url='https://aldermoor.example/investors/annual-report-2025'): +185.4 ms
+  [L5] error on calculator call #1 (expression='(4812.3 - 4390.1) / 4390.1 * 100'): tool error 'math server unavailable'
+  [L1] latency on web_search call #2 (query='Brightwater Foods annual report 2025'): +187.3 ms
+  [L1] latency on calculator call #2 (expression='(2137.8 - 2205.4) / 2205.4 * 100'): +103.2 ms
+Report:
+  | Company | FY2025 (EUR m) | FY2024 (EUR m) | Growth | Source / notes |
+  |---|---|---|---|---|
+  | Aldermoor Systems | 4,812.3 | 4,390.1 | n/a | https://aldermoor.example/investors/annual-report-2025; growth not computed: math server unavailable |
+  | Brightwater Foods | 2,137.8 | 2,205.4 | -3.1% | https://brightwater.example/investors/annual-report-2025 |
+  | Corvel Logistics | 9,604.0 | 8,871.5 | +8.3% | https://corvel.example/investors/annual-report-2025 |
+Outcome: Safe gap  (1.2 s)
+  - reported as missing: Aldermoor Systems growth
+Rerun with the same configuration: identical faults and outcome
+
+=== Summary ===
+scenario                           faults  outcome
+00-baseline                             0  Correct
+01-L1-latency                           3  Correct
+02-L1-timeout                           1  Loud failure
+03-L2-rate-limit                        1  Loud failure
+04-L4-no-answer                         1  Loud failure
+05-L5-calculator-down                   3  Safe gap
+06-S1-empty-search                      1  Safe gap
+07-S2-page-cut-off                      1  Safe gap
+08-S3-login-wall                        1  Safe gap
+09-S4-last-years-report                 1  Silent wrong
+10-S5-one-figure-altered                1  Silent wrong
+11-S6-unofficial-site-first             1  Silent wrong
+12-S7-calculator-wrong                  1  Silent wrong
+13-S8-number-format                     1  Silent wrong
+14-mixed-random                         4  Safe gap

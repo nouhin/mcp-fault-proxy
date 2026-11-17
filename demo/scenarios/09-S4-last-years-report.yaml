@@ -1,0 +1,11 @@
+# S4: the request for the FY2025 report gets last year's report
+seed: 1
+rules:
+  - id: last-years-report
+    tag: S4
+    tool: fetch_page
+    fault: rewrite_args
+    argument: url
+    pattern: "annual-report-2025$"
+    replacement: "annual-report-2024"
+    nth: 2

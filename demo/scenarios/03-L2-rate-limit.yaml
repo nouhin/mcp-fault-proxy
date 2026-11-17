@@ -1,0 +1,11 @@
+# L2: the third web_search is refused with a rate-limit error
+seed: 1
+rules:
+  - id: rate-limit
+    tag: L2
+    tool: web_search
+    fault: error
+    mode: jsonrpc
+    code: -32000
+    message: "Rate limit exceeded, retry after 30 seconds"
+    nth: 3

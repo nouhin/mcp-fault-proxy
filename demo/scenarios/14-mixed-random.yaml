@@ -1,0 +1,6 @@
+# Mixed, rate-based faults on every tool; the seed fixes which calls are hit
+seed: 2026
+rules:
+  - {id: random-latency, tag: L1, tool: "*", fault: latency, rate: 0.3, delay_ms: 100, jitter_ms: 100}
+  - {id: random-figure, tag: S5, tool: fetch_page, fault: alter_number, field: text, rate: 0.3}
+  - {id: random-calc-error, tag: L5, tool: calculator, fault: error, mode: tool, message: "math server unavailable", rate: 0.3}

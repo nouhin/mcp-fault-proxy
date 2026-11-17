@@ -1,0 +1,3 @@
+# Baseline: proxy in place, no faults
+seed: 1
+rules: []

@@ -1,0 +1,9 @@
+# S5: one revenue figure in a fetched page is altered by 5-15 %
+seed: 1
+rules:
+  - id: one-figure-altered
+    tag: S5
+    tool: fetch_page
+    fault: alter_number
+    field: text
+    nth: 2

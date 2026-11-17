@@ -1,0 +1,11 @@
+# S6: an unofficial aggregator site is ranked above the official report
+seed: 1
+rules:
+  - id: aggregator-first
+    tag: S6
+    tool: web_search
+    fault: inject_item
+    item:
+      title: "Aldermoor Systems revenue 2025 - RevenueFacts"
+      url: "https://revenuefacts.example/aldermoor-systems"
+    nth: 1

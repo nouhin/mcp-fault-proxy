@@ -1,0 +1,8 @@
+# L4: a fetch_page is lost (as if the server restarted mid-call) and never answered
+seed: 1
+rules:
+  - id: lost-call
+    tag: L4
+    tool: fetch_page
+    fault: drop
+    nth: 1

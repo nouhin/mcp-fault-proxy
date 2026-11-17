@@ -109,3 +109,14 @@ async def test_wrong_but_plausible_results(tmp_path):
     assert not empty.is_error and empty.content == [] and empty.structured_content == {"result": []}
     assert [h["title"] for h in ranked.structured_content["result"]][0] == "Fan wiki"
     assert all(e["details"].get("changed") for e in fault_log(tmp_path))
+
+
+async def test_demo_baseline_is_correct_and_altered_figure_is_silently_wrong(tmp_path):
+    demo = Path(__file__).parent.parent / "demo"
+    sys.path.insert(0, str(demo))
+    from report_client import run_task
+
+    _, outcome, _ = await run_task(demo / "scenarios" / "00-baseline.yaml", tmp_path / "a")
+    assert outcome == "Correct"
+    _, outcome, reasons = await run_task(demo / "scenarios" / "10-S5-one-figure-altered.yaml", tmp_path / "b")
+    assert outcome == "Silent wrong" and any("Brightwater Foods FY2025" in r for r in reasons)

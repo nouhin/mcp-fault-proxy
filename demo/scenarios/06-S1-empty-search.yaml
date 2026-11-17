@@ -1,0 +1,8 @@
+# S1: the second web_search succeeds but returns no hits
+seed: 1
+rules:
+  - id: empty-search
+    tag: S1
+    tool: web_search
+    fault: empty_result
+    nth: 2

@@ -1,0 +1,10 @@
+# S2: the first fetched page is cut off before its revenue section
+seed: 1
+rules:
+  - id: page-cut-off
+    tag: S2
+    tool: fetch_page
+    fault: truncate
+    field: text
+    keep: 0.5
+    nth: 1

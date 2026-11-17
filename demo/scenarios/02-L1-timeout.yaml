@@ -1,0 +1,9 @@
+# L1 (permanent): the second fetch_page takes longer than the client's 2 s timeout
+seed: 1
+rules:
+  - id: fetch-timeout
+    tag: L1
+    tool: fetch_page
+    fault: latency
+    nth: 2
+    delay_ms: 5000

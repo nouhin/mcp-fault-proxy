@@ -1,0 +1,10 @@
+# L5: the calculator is down for the whole run
+seed: 1
+rules:
+  - id: calculator-down
+    tag: L5
+    tool: calculator
+    fault: error
+    mode: tool
+    message: "math server unavailable"
+    rate: 1.0

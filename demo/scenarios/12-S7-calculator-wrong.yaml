@@ -1,0 +1,10 @@
+# S7: the calculator returns a plausible but wrong growth figure
+seed: 1
+rules:
+  - id: calculator-wrong
+    tag: S7
+    tool: calculator
+    fault: alter_number
+    min_change: 0.1
+    max_change: 0.3
+    nth: 3

@@ -1,0 +1,10 @@
+# L1 (brief): every web_search is slowed by 300-500 ms
+seed: 1
+rules:
+  - id: slow-search
+    tag: L1
+    tool: web_search
+    fault: latency
+    rate: 1.0
+    delay_ms: 300
+    jitter_ms: 200

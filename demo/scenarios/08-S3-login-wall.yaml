@@ -1,0 +1,10 @@
+# S3: the third fetched page is a login wall, served with status 200
+seed: 1
+rules:
+  - id: login-wall
+    tag: S3
+    tool: fetch_page
+    fault: replace_text
+    field: text
+    text: "Sign in to continue. Investor documents are available to registered users only."
+    nth: 3
