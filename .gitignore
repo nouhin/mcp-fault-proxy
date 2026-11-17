@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+dist/
+# Logs written by local runs; the committed demo log lives in demo/
+logs/
