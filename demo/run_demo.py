@@ -60,7 +60,7 @@ async def main(prefixes: list[str]) -> None:
 
     scenarios = sorted(p for p in (DEMO / "scenarios").glob("*.yaml") if not prefixes or p.name.startswith(tuple(prefixes)))
     summary = []
-    emit("Demo run of mcp-fault-proxy: the scripted report agent client against toy web and math servers.")
+    emit("Demo run of mcp-fault-proxy: the scripted report client against toy web and math servers.")
     emit("Each scenario puts both servers behind the proxy with the scenario's configuration.")
     for scenario in scenarios:
         title = scenario.read_text().splitlines()[0].lstrip("# ")

@@ -1,4 +1,4 @@
-"""Run the report agent task with a real LLM (any OpenAI-compatible server, e.g. LM Studio)
+"""Run the report task with a real LLM (any OpenAI-compatible server, e.g. LM Studio)
 calling the toy MCP tools through the fault proxy, and grade it like the scripted client.
 
     uv run python demo/llm_agent.py [scenario prefixes...]   # default: all scenarios

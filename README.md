@@ -80,7 +80,7 @@ rules:
   newline-delimited JSON-RPC, and any line no fault applies to is forwarded as the exact bytes
   received. The MCP handshake, capability negotiation and notifications pass through untouched,
   so normal traffic is unchanged by construction. Only a faulted message is re-serialised.
-- **Faults act only on `tools/call`.** This is where all of a report agent's tool faults live.
+- **Faults act only on `tools/call`.** This is where every tool fault of an agent lives.
   `initialize`, `tools/list` and notifications are never touched.
 - **Reproducible without global randomness.** Whether a rule fires is a SHA-256 hash of
   `(seed, rule id, tool, n)`, where `n` is the call's position among calls to that tool. A fault's
@@ -101,8 +101,8 @@ rules:
 
 ## Demo
 
-`demo/` holds two toy servers built with the official MCP Python SDK. They mirror a report agent's
-tools:
+`demo/` holds two toy servers built with the official MCP Python SDK. They provide the tools a report-writing
+agent needs:
 
 - `web` (`web_search`, `fetch_page`) serves a small fixed web of annual reports for three fictional
   companies, plus one unofficial aggregator page.
@@ -151,8 +151,8 @@ Fault logs go to `logs/`.
 
 - **stdio only.** There is no Streamable HTTP or SSE transport, so remote servers need a
   stdio bridge.
-- **Only tool calls are faulted.** Messages between agents and the approval step (A and P
-  faults) live inside the agent framework, and an MCP proxy cannot see them.
+- **Only tool calls are faulted.** Faults in messages between agents, or in an approval
+  step, live inside the agent framework, and an MCP proxy cannot see them.
 - **L3 and L4 are approximated.** `drop` loses one call while the server keeps running. The proxy
   does not kill or restart the server, and does not send malformed JSON-RPC or cut the stream.
 - **Reproducibility assumes the same call order.** Decisions follow the order in which requests
@@ -166,6 +166,6 @@ Fault logs go to `logs/`.
 - **Latency applies on the way to the server.** No fault slows the response on its way back,
   which matters only for streaming or progress notifications.
 - **The scripted client is not an agent, and the LLM agent is one agent, not three.** Neither
-  reproduces a report agent's message passing between agents. With an LLM, the call order changes
+  reproduces the message passing of a multi-agent system. With an LLM, the call order changes
   between runs, so the same seed can hit different calls: the fault schedule is reproducible, the
   outcome is not.

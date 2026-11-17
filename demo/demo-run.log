@@ -1,4 +1,4 @@
-Demo run of mcp-fault-proxy: the scripted report agent client against toy web and math servers.
+Demo run of mcp-fault-proxy: the scripted report client against toy web and math servers.
 Each scenario puts both servers behind the proxy with the scenario's configuration.
 
 === 00-baseline ===
